@@ -122,6 +122,16 @@ namespace sente::utils{
             }
         }
 
+        void delChild(const Type& value){
+            for (auto iter = cursor->children.begin(); iter < cursor->children.end(); iter++){
+                if ((*iter)->payload == value){
+                    cursor->children.erase(iter);
+                    return;
+                }
+            }
+            throw std::domain_error("could not delete the specified child; child does not exist!");
+        }
+
         void advanceToRoot(){
             cursor = root.get();
             depth = 0;

@@ -429,6 +429,25 @@ namespace sente {
 
     }
 
+
+    void GoGame::delBranch(const Move& move) {
+
+        // get the children of the current node
+        auto children = gameTree.getChildren();
+
+        for (const auto& child : children){
+            if (child.getMove() == move){
+                gameTree.delChild(child);
+                return;
+            }
+        }
+
+        // raise an exception if we can't find it
+        throw std::domain_error("cannot delete the specified move; \"" +
+                                std::string(move) + "\" does not exist in the game tree");
+
+    }
+
     std::vector<std::vector<Move>> GoGame::getSequences(const std::vector<Move>& currentSequence) {
 
         std::vector<std::vector<Move>> sequences;
@@ -497,7 +516,8 @@ namespace sente {
 
             // check to see if the property is legal for this version of SGF
             if (not SGF::isSGFLegal(SGFProperty, std::stoi(gameTree.getRoot().getProperty(SGF::FF)[0]))){
-                throw utils::InvalidSGFException("SGF Property \"" + property + "\" is not supported for SGF FF[" + gameTree.getRoot().getProperty(SGF::FF)[0] + "]");
+                throw utils::InvalidSGFException("SGF Property \"" + property + "\" is not supported for SGF FF[" +
+                                                 gameTree.getRoot().getProperty(SGF::FF)[0] + "]");
             }
 
             // we can't edit the size of the board
@@ -523,7 +543,8 @@ namespace sente {
 
             // check to see if the property is legal for this version of SGF
             if (not SGF::isSGFLegal(SGFProperty, std::stoi(gameTree.getRoot().getProperty(SGF::FF)[0]))){
-                throw utils::InvalidSGFException("SGF Property \"" + property + "\" is not supported for SGF FF[" + gameTree.getRoot().getProperty(SGF::FF)[0] + "]");
+                throw utils::InvalidSGFException("SGF Property \"" + property + "\" is not supported for SGF FF[" +
+                                                 gameTree.getRoot().getProperty(SGF::FF)[0] + "]");
             }
 
             if (SGFProperty == SGF::SZ){

@@ -739,6 +739,26 @@ class TestTreeNavigation(TestCase):
 
         self.assertEqual("here is a backslash \\", game.comment)
 
+    def test_del_branch(self):
+        """
+
+        tests to see if branches can be deleted
+
+        :return: None
+        """
+
+        game = sente.Game()
+
+        game.play(4, 4)
+        game.play(16, 4)
+
+        game.step_up()
+
+        branches = game.get_branches()
+        game.del_branch(branches[0])
+
+        self.assertEqual([], game.get_branches())
+
 
 class TestNumpy(DoesNotRaiseTestCase):
 

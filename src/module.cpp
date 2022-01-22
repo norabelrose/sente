@@ -518,6 +518,13 @@ PYBIND11_MODULE(sente, module){
 
                 :return: list of branches at the current node of the tree
             )pbdoc")
+        .def("del_branch", &sente::GoGame::delBranch,
+            R"pbdoc(
+
+                deletes the specified move and all of it's children from the game tree
+
+                :return: None
+            )pbdoc")
         .def("get_default_sequence", &sente::GoGame::getDefaultSequence,
             R"pbdoc(
                 generates a list of the moves in the default branch.

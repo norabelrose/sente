@@ -76,6 +76,8 @@ namespace sente {
         std::vector<Move> getMoveSequence();
         std::vector<Move> getDefaultSequence();
 
+        void delBranch(const Move& move);
+
         std::vector<std::vector<Move>> getSequences(const std::vector<Move>& currentSequence);
 
         unsigned getMoveNumber() const;
