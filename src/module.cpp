@@ -8,11 +8,11 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/functional.h>
 
-#include "Utils/SGF/SGF.h"
 #include "Game/GoGame.h"
+#include "Utils/GTP/Responder.h"
 #include "Utils/Numpy.h"
+#include "Utils/SGF/SGF.h"
 #include "Utils/SenteExceptions.h"
-#include "Utils/GTP/Session.h"
 
 namespace py = pybind11;
 
@@ -698,17 +698,17 @@ PYBIND11_MODULE(sente, module){
         Utilities for implementing the go text protocol (GTP)
     )pbdoc");
 
-    py::class_<sente::GTP::Session>(GTP, "Session")
+    py::class_<sente::GTP::Responder>(GTP, "Responder")
             .def(py::init<std::string, std::string>(),
                     py::arg("name") = "unimplemented_engine",
                     py::arg("version") = "0.0.0")
-            .def("interpret", &sente::GTP::Session::interpret, R"pbdoc(
+            .def("interpret", &sente::GTP::Responder::interpret, R"pbdoc(
                     runs a string through the sente GTP interpreter
 
                     :param command: string containing the GTP command to execute
                     :return response: response from the GTP interpreter, neglecting one newline
                 )pbdoc")
-            .def("GenMove", [inspect, typing](sente::GTP::Session& session, py::function& function){
+            .def("GenMove", [inspect, typing](sente::GTP::Responder & session, py::function& function){
                 return session.registerGenMove(function, inspect, typing);
             }, R"pbdoc(
                 Decorator function to implement the ``genmove`` command
@@ -716,7 +716,7 @@ PYBIND11_MODULE(sente, module){
                 :param function: function to register
                 :return: the original function
             )pbdoc")
-            .def("Command", [inspect, typing](sente::GTP::Session& session, py::function& function) -> py::function& {
+            .def("Command", [inspect, typing](sente::GTP::Responder & session, py::function& function) -> py::function& {
                 return session.registerCommand(function, inspect, typing);
             }, R"pbdoc(
                 Decorator function for a private GTP extension
@@ -724,14 +724,14 @@ PYBIND11_MODULE(sente, module){
                 :param function: function to register
                 :return: the original function
             )pbdoc")
-            .def("active", [](const sente::GTP::Session& engine){
+            .def("active", [](const sente::GTP::Responder & engine){
                 return engine.isActive();
             }, R"pbdoc(
-                returns whether or not the GTP Session is active
+                returns whether or not the GTP Responder is active
 
-                :return active: whether or not the GTP Session is active
+                :return active: whether or not the GTP Responder is active
             )pbdoc")
-            .def_readwrite("game", &sente::GTP::Session::masterGame)
-            .def_property("name", &sente::GTP::Session::getEngineName, &sente::GTP::Session::setEngineName);
+            .def_readwrite("game", &sente::GTP::Responder::masterGame)
+            .def_property("name", &sente::GTP::Responder::getEngineName, &sente::GTP::Responder::setEngineName);
 
 }

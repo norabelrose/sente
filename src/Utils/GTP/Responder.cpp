@@ -2,7 +2,7 @@
 // Created by arthur wesley on 12/12/21.
 //
 
-#include "Session.h"
+#include "Responder.h"
 
 #include <set>
 #include <utility>
@@ -124,7 +124,7 @@ namespace sente::GTP {
 
     }
 
-    Session::Session(const std::string& engineName, const std::string& engineVersion)
+    Responder::Responder(const std::string& engineName, const std::string& engineVersion)
         : masterGame(19, CHINESE, determineKomi(CHINESE)){
         setEngineName(engineName);
         setEngineVersion(engineVersion);
@@ -143,7 +143,7 @@ namespace sente::GTP {
         py::object self = py::cast(this);
     }
 
-    std::string Session::interpret(std::string text) {
+    std::string Responder::interpret(std::string text) {
 
         text = preprocess(text);
         auto tokens = parse(text);
@@ -266,7 +266,7 @@ namespace sente::GTP {
         return outputStream.str();
     }
 
-    void Session::registerCommand(const std::string& commandName, CommandMethod method,
+    void Responder::registerCommand(const std::string& commandName, CommandMethod method,
                                   std::vector<ArgumentPattern> argumentPattern){
 
         // raise an exception if the command is non-modifiable
@@ -315,7 +315,7 @@ namespace sente::GTP {
         }
     }
 
-    py::function& Session::registerCommand(py::function& function, const py::module_& inspect,
+    py::function&Responder::registerCommand(py::function& function, const py::module_& inspect,
                                   const py::module_& typing) {
 
         // check that the function is valid
@@ -335,7 +335,7 @@ namespace sente::GTP {
         }
 
         // define the custom command using a lambda
-        CommandMethod wrapper = [function, name, returnType, typing](Session* self,
+        CommandMethod wrapper = [function, name, returnType, typing](Responder * self,
                 const std::vector<std::shared_ptr<Token>>& arguments)
                 -> Response{
 
@@ -376,7 +376,7 @@ namespace sente::GTP {
         return function;
     }
 
-    py::function& Session::registerGenMove(py::function &function, const py::module_ &inspect,
+    py::function&Responder::registerGenMove(py::function &function, const py::module_ &inspect,
                                            const py::module_ &typing) {
 
         // make sure that the GTP command is formatted correctly
@@ -404,7 +404,7 @@ namespace sente::GTP {
                                   " returns " + std::string(py::str(annotations["return"].attr("__name__"))));
         }
 
-        CommandMethod wrapper = [function](Session* self, const std::vector<std::shared_ptr<Token>>& arguments)
+        CommandMethod wrapper = [function](Responder * self, const std::vector<std::shared_ptr<Token>>& arguments)
                 -> Response {
 
             // convert the arguments to python objects
@@ -472,11 +472,11 @@ namespace sente::GTP {
         return function;
     }
 
-    std::string Session::getEngineName() const {
+    std::string Responder::getEngineName() const {
         return engineName;
     }
 
-    void Session::setEngineName(std::string name){
+    void Responder::setEngineName(std::string name){
         if (name.find(' ') != std::string::npos){
             throw py::value_error("engine name \"" + name + "\"contains invalid character ' ' in position " +
                                   std::to_string(name.find(' ')) + ".");
@@ -488,50 +488,51 @@ namespace sente::GTP {
         engineName = name;
     }
 
-    std::string Session::getEngineVersion() const {
+    std::string Responder::getEngineVersion() const {
         return engineVersion;
     }
 
-    void Session::setEngineVersion(std::string version){
+    void Responder::setEngineVersion(std::string version){
         engineVersion = std::move(version);
     }
 
     std::unordered_map<std::string, std::vector<std::pair<CommandMethod,
-            std::vector<ArgumentPattern>>>> Session::getCommands() const {
+            std::vector<ArgumentPattern>>>>
+    Responder::getCommands() const {
         return commands;
     }
 
-    bool Session::isActive() const {
+    bool Responder::isActive() const {
         return active;
     }
 
-    void Session::setActive(bool active) {
+    void Responder::setActive(bool active) {
         this->active = active;
     }
 
-    void Session::setGTPDisplayFlags() {
+    void Responder::setGTPDisplayFlags() {
         // flip the co-ordinate label for the board
         masterGame.setASCIIMode(true);
         masterGame.setLowerLeftCornerCoOrdinates(true);
     }
 
-    std::string Session::errorMessage(const std::string& message) {
+    std::string Responder::errorMessage(const std::string& message) {
         return "? " + message + "\n";
     }
 
-    std::string Session::errorMessage(const std::string &message, unsigned id) {
+    std::string Responder::errorMessage(const std::string &message, unsigned id) {
         return "?" + std::to_string(id) + " " + message + "\n\n";
     }
 
-    std::string Session::statusMessage(const std::string &message) {
+    std::string Responder::statusMessage(const std::string &message) {
         return "= " + message + "\n";
     }
 
-    std::string Session::statusMessage(const std::string &message, unsigned id) {
+    std::string Responder::statusMessage(const std::string &message, unsigned id) {
         return "=" + std::to_string(id) + " " + message + "\n";
     }
 
-    bool Session::argumentsMatch(const std::vector<ArgumentPattern> &expectedArguments,
+    bool Responder::argumentsMatch(const std::vector<ArgumentPattern> &expectedArguments,
                                  const std::vector<std::shared_ptr<Token>> &arguments) {
 
         if (arguments.size() != expectedArguments.size()){
@@ -551,7 +552,7 @@ namespace sente::GTP {
 
     }
 
-    Response Session::invalidArgumentsErrorMessage(const std::vector<std::vector<ArgumentPattern>>& argumentPatterns,
+    Response Responder::invalidArgumentsErrorMessage(const std::vector<std::vector<ArgumentPattern>>& argumentPatterns,
                                                    const std::vector<std::shared_ptr<Token>> &arguments) {
 
         std::stringstream message;
@@ -612,7 +613,7 @@ namespace sente::GTP {
 
     }
 
-    Response Session::execute(const std::string &command, const std::vector<std::shared_ptr<Token>> &arguments) {
+    Response Responder::execute(const std::string &command, const std::vector<std::shared_ptr<Token>> &arguments) {
 
         // generate a list of possible argument patterns
         std::vector<std::vector<ArgumentPattern>> patterns;
@@ -645,7 +646,7 @@ namespace sente::GTP {
      * @param inspect python inspect module (used to inspect the function)
      * @return argument pattern of the function
      */
-    std::vector<ArgumentPattern> Session::getArgumentPattern(py::function &function, const py::module_ &inspect) {
+    std::vector<ArgumentPattern> Responder::getArgumentPattern(py::function &function, const py::module_ &inspect) {
 
         // get the arguments and name from inspecting the function
         auto argSpec = inspect.attr("getfullargspec")(function);
@@ -686,7 +687,7 @@ namespace sente::GTP {
      * @param arguments vector containing the arguments to be converted
      * @return python tuple that can be passed to a python function
      */
-    py::tuple Session::gtpArgsToPyArgs(const std::vector<std::shared_ptr<Token>>& arguments, unsigned boardSize) {
+    py::tuple Responder::gtpArgsToPyArgs(const std::vector<std::shared_ptr<Token>>& arguments, unsigned boardSize) {
 
         auto pyArgs = py::list();
 

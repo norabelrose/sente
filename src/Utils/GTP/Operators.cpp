@@ -10,21 +10,21 @@
 
 namespace sente::GTP {
 
-    Response protocolVersion(Session* self, const std::vector<std::shared_ptr<Token>>& arguments){
+    Response protocolVersion(Responder * self, const std::vector<std::shared_ptr<Token>>& arguments){
         (void) self;
         (void) arguments;
         return {true, "2"};
     }
 
-    Response name(Session* self, const std::vector<std::shared_ptr<Token>>& arguments){
+    Response name(Responder * self, const std::vector<std::shared_ptr<Token>>& arguments){
         (void) arguments;
         return {true, self->getEngineName()};
     }
-    Response version(Session* self, const std::vector<std::shared_ptr<Token>>& arguments){
+    Response version(Responder * self, const std::vector<std::shared_ptr<Token>>& arguments){
         (void) arguments;
         return {true, self->getEngineVersion()};
     }
-    Response knownCommand(Session* self, const std::vector<std::shared_ptr<Token>>& arguments){
+    Response knownCommand(Responder * self, const std::vector<std::shared_ptr<Token>>& arguments){
         auto commands = self->getCommands();
         if (commands.find(arguments[1]->getText()) == commands.end()){
             return {true, "false"};
@@ -33,7 +33,7 @@ namespace sente::GTP {
             return {true, "true"};
         }
     }
-    Response listCommands(Session* self, const std::vector<std::shared_ptr<Token>>& arguments){
+    Response listCommands(Responder * self, const std::vector<std::shared_ptr<Token>>& arguments){
         (void) arguments;
         std::stringstream commands;
 
@@ -51,12 +51,12 @@ namespace sente::GTP {
         return {true, commands.str()};
 
     }
-    Response quit(Session* self, const std::vector<std::shared_ptr<Token>>& arguments){
+    Response quit(Responder * self, const std::vector<std::shared_ptr<Token>>& arguments){
         (void) arguments;
         self->setActive(false);
         return {true, ""};
     }
-    Response boardSize(Session* self, const std::vector<std::shared_ptr<Token>>& arguments){
+    Response boardSize(Responder * self, const std::vector<std::shared_ptr<Token>>& arguments){
         // reset the board
         auto* size = (Integer*) arguments[1].get();
         if (size->getValue() == 9 or size->getValue() == 13 or size->getValue() == 19){
@@ -68,19 +68,19 @@ namespace sente::GTP {
             return {false, "unacceptable size"};
         }
     }
-    Response clearBoard(Session* self, const std::vector<std::shared_ptr<Token>>& arguments){
+    Response clearBoard(Responder * self, const std::vector<std::shared_ptr<Token>>& arguments){
         (void) arguments;
         // reset the board
         self->masterGame = GoGame(self->masterGame.getSide(), self->masterGame.getRules(), self->masterGame.getKomi());
         self->setGTPDisplayFlags();
         return {true, ""};
     }
-    Response komi(Session* self, const std::vector<std::shared_ptr<Token>>& arguments){
+    Response komi(Responder * self, const std::vector<std::shared_ptr<Token>>& arguments){
         auto* newKomi = (Float*) arguments[1].get();
         self->masterGame.setKomi(newKomi->getValue());
         return {true, ""};
     }
-    Response play(Session* self, const std::vector<std::shared_ptr<Token>>& arguments){
+    Response play(Responder * self, const std::vector<std::shared_ptr<Token>>& arguments){
 
         // generate a move from the arguments
         sente::Move move = ((Move*) arguments[1].get())->getMove(self->masterGame.getSide());;
@@ -101,16 +101,16 @@ namespace sente::GTP {
             return {false, "illegal move"};
         }
     }
-    Response genMove(Session* self, const std::vector<std::shared_ptr<Token>>& arguments){
+    Response genMove(Responder * self, const std::vector<std::shared_ptr<Token>>& arguments){
         (void) self;
         (void) arguments;
         throw std::runtime_error("genmove has not been implemented by this engine, please register a valid function");
     }
-    Response showBoard(Session* self, const std::vector<std::shared_ptr<Token>>& arguments){
+    Response showBoard(Responder * self, const std::vector<std::shared_ptr<Token>>& arguments){
         (void) arguments;
         return {true, "\n" + std::string(self->masterGame)};
     }
-    Response undoOnce(Session* self, const std::vector<std::shared_ptr<Token>>& arguments){
+    Response undoOnce(Responder * self, const std::vector<std::shared_ptr<Token>>& arguments){
         (void) arguments;
         if (not self->masterGame.isAtRoot()){
             self->masterGame.stepUp(1);
@@ -121,7 +121,7 @@ namespace sente::GTP {
             return {false, "cannot undo"};
         }
     }
-    Response undoMultiple(Session* self, const std::vector<std::shared_ptr<Token>>& arguments){
+    Response undoMultiple(Responder * self, const std::vector<std::shared_ptr<Token>>& arguments){
         auto* steps = (Integer*) arguments[1].get();
         if (self->masterGame.getMoveSequence().size() >= steps->getValue()){
             self->masterGame.stepUp(steps->getValue());
@@ -133,7 +133,7 @@ namespace sente::GTP {
         }
     }
 
-    Response baseLoadSGF(Session* self, const std::string& filePath){
+    Response baseLoadSGF(Responder * self, const std::string& filePath){
 
         // load the text from the file
         std::ifstream filePointer(filePath);
@@ -156,7 +156,7 @@ namespace sente::GTP {
 
     }
 
-    Response loadSGF1(Session* self, const std::vector<std::shared_ptr<Token>>& arguments){
+    Response loadSGF1(Responder * self, const std::vector<std::shared_ptr<Token>>& arguments){
         auto* pathStr = (String*) arguments[1].get();
         auto response = baseLoadSGF(self, pathStr->getText());
 
@@ -165,7 +165,7 @@ namespace sente::GTP {
         return response;
     }
 
-    Response loadSGF2(Session* self, const std::vector<std::shared_ptr<Token>>& arguments){
+    Response loadSGF2(Responder * self, const std::vector<std::shared_ptr<Token>>& arguments){
         // load the board
         auto* pathStr = (String*) arguments[1].get();
         auto* moves = (Integer*) arguments[2].get();

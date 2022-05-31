@@ -5,7 +5,7 @@
 #ifndef SENTE_PYTHONBINDINGS_H
 #define SENTE_PYTHONBINDINGS_H
 
-#include "Session.h"
+#include "Responder.h"
 
 namespace sente::GTP {
 
