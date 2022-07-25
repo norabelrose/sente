@@ -551,6 +551,11 @@ class IllegalMoveThrowsException(TestCase):
                 # Make sure the self-captured stone is actually captured
                 self.assertTrue(game.get_board().get_stone(1, 1) == sente.stone.EMPTY)
 
+                # Make sure the white stones are also captured
+                self.assertTrue(game.get_board().get_stone(1, 2) == sente.stone.EMPTY)
+                self.assertTrue(game.get_board().get_stone(2, 1) == sente.stone.EMPTY)
+                self.assertTrue(game.get_board().get_stone(2, 2) == sente.stone.EMPTY)
+
     def test_ko(self):
         """
 

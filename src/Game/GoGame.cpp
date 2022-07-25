@@ -843,45 +843,54 @@ namespace sente {
         // reset the ko point
         resetKoPoint();
 
-        // capture stones
-        for (const auto& group : theirAffectedGroups){
-            if (utils::getLiberties(*group, *board).empty()){
+        // "Clear" a player's territory, checking for ko
+        auto clear = [&](auto ourGroups, auto theirGroups) {
+            for (const auto& group : theirGroups){
+                // capture stones
+                if (utils::getLiberties(*group, *board).empty()){
+                    // check for a Ko
+                    // if we captured a stone without affecting any of our groups
+                    if (ourGroups.empty() and group->getMoves().size() == 1){
 
-                // check for a Ko
-                // if we captured a stone without affecting any of our groups
-                if (ourAffectedGroups.empty() and group->getMoves().size() == 1){
+                        bool ko = true;
 
-                    bool ko = true;
+                        Move KoMove = *group->getMoves().begin();
 
-                    Move KoMove = *group->getMoves().begin();
+                        // make sure that the capturing stone is captured before the stone is removed
+                        for (const auto& adjacentSpace : move.getAdjacentMoves(board->getSide())){
+                            ko = ko and board->getSpace(adjacentSpace).getStone()
+                                        == getOpponent(move.getStone());
 
-                    // make sure that the capturing stone is captured before the stone is removed
-                    for (const auto& adjacentSpace : move.getAdjacentMoves(board->getSide())){
-                        ko = ko and board->getSpace(adjacentSpace).getStone()
-                                    == getOpponent(move.getStone());
+                        }
+
+                        // if this is a real ko, update the ko move
+                        if (ko){
+                            koPoint = KoMove;
+                        }
 
                     }
 
-                    // if this is a real ko, update the ko move
-                    if (ko){
-                        koPoint = KoMove;
+                    // capture the stones
+                    for (const auto& stone : group->getMoves()){
+                        // erase the item
+                        groups.erase(stone);
+                        board->captureStone(stone);
+                        capturedStones[gameTree.getDepth()].insert(stone);
                     }
-
-                }
-
-                // capture the stones
-                for (const auto& stone : group->getMoves()){
-                    // erase the item
-                    groups.erase(stone);
-                    board->captureStone(stone);
-                    capturedStones[gameTree.getDepth()].insert(stone);
                 }
             }
-        }
+        };
 
-        // Handle legal self-captures under Tromp-Taylor rules
-        if (rules == TROMP_TAYLOR and not isNotSelfCapture(move)) {
-            // erase the item
+        // Under any ruleset, we need to clear the opponent's territory
+        clear(ourAffectedGroups, theirAffectedGroups);
+
+        // Under Tromp-Taylor rules, we need to clear our territory to handle
+        // possible self-captures
+        if (rules == TROMP_TAYLOR and not isNotSelfCapture(move)){
+            // Capture other stones as needed
+            clear(theirAffectedGroups, ourAffectedGroups);
+
+            // Capture the suicidal stone
             groups.erase(move);
             board->captureStone(move);
             capturedStones[gameTree.getDepth()].insert(move);
